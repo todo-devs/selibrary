@@ -47,7 +47,7 @@ abstract class Net {
     String method = 'GET',
     bool verify = true,
   }) async {
-    FormData formData = null;
+    Map<String, String> formData;
 
     final http = httpClient;
 
@@ -63,7 +63,7 @@ abstract class Net {
     }
 
     if (dataMap != null) {
-      formData = FormData.fromMap(dataMap);
+      formData = dataMap;
     }
 
     if (!verify) {
@@ -76,7 +76,7 @@ abstract class Net {
 
     var response = await http.request(
       url,
-      data: formData,
+      queryParameters: formData,
       options: Options(
         method: method,
         validateStatus: (status) {
