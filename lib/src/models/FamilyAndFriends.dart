@@ -1,6 +1,6 @@
-import 'dart:html';
 import 'dart:io';
 
+import 'package:html/dom.dart';
 import 'package:selibrary/selibrary.dart';
 
 const MCP_UNSUBSCRIBE_FAF_URL =
