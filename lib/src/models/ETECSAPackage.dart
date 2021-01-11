@@ -1,4 +1,4 @@
-import 'dart:html';
+import 'package:html/dom.dart';
 
 class ETECSAPackage {
   final Element _element;
