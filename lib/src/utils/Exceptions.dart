@@ -4,6 +4,10 @@ class IException implements Exception {
   IException(this.message);
 }
 
+class LoginException extends IException {
+  LoginException(String message) : super(message);
+}
+
 class CommunicationException extends IException {
   CommunicationException(String message) : super(message);
 }
