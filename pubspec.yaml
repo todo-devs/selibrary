@@ -1,0 +1,11 @@
+name: selibrary
+description: Dart library to work with ETECSA services
+version: 0.0.1
+repository: https://github.com/todo-devs/selibrarys
+
+environment:
+  sdk: ">=2.1.0 <3.0.0"
+
+dependencies:
+  dio: ^3.0.10
+  html: ^0.14.0+4
