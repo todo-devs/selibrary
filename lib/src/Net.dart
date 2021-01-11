@@ -13,7 +13,7 @@ abstract class Net {
       _httpClient = Dio();
 
       _httpClient.options.headers[HttpHeaders.acceptHeader] =
-          'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8';
+          'text/html,application/xhtml+xml,application/xml;application/json;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9';
 
       _httpClient.options.headers[HttpHeaders.acceptLanguageHeader] =
           'es-ES,es;q=0.8,en-US;q=0.5,en;q=0.3';
@@ -23,6 +23,8 @@ abstract class Net {
 
       _httpClient.options.headers[HttpHeaders.userAgentHeader] =
           'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36';
+
+      _httpClient.options.headers[HttpHeaders.connectionHeader] = 'keep-alive';
     }
 
     if (_cookies != null) {
