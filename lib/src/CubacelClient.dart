@@ -444,10 +444,10 @@ abstract class ICubacelClient {
     }
   }
 
-  Future<void> loadProducts(String urlAction) async {
+  Future<void> loadProducts() async {
     try {
       final response = await Net.connection(
-        url: urlAction,
+        url: _urlsMCP['products'],
       );
       _productsPage = parse(response.data);
     } catch (e) {

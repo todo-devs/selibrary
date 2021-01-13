@@ -1,5 +1,4 @@
-import 'dart:io';
-
+import 'package:dio/dio.dart';
 import 'package:html/dom.dart';
 import 'package:html/parser.dart';
 import 'package:selibrary/selibrary.dart';
@@ -21,7 +20,8 @@ class Product {
       .querySelector(
           'div[class="offerPresentationProductDescription_msdp product_desc"]')
       .querySelector('span[class="bold"]')
-      .text);
+      .text
+      .replaceAll(',', ''));
 
   String get urlBuyAction => _element
       .querySelector(
@@ -36,7 +36,7 @@ class Product {
       .querySelector('a[class="offerPresentationProductBuyLink_msdp"]')
       .attributes['href'];
 
-  static void buy(String urlBuyAction, List<Cookie> cookies) async {
+  Future<String> buy() async {
     try {
       var response = await Net.connection(url: MCP_BASE_URL + urlBuyAction);
       var page = parse(response.data);
@@ -58,7 +58,9 @@ class Product {
       if (purchaseDetail.startsWith("Ha ocurrido un error.")) {
         throw OperationException(purchaseDetail);
       }
-    } catch (e) {
+
+      return purchaseDetail;
+    } on DioError catch (e) {
       throw CommunicationException("${e.message}");
     }
   }

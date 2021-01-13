@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:html/dom.dart';
 import 'package:selibrary/selibrary.dart';
 
@@ -33,7 +31,7 @@ class FamilyAndFriends {
   bool get isSubscribe => _fnfValue == 'true';
 
   List<PhoneNumberFF> get phoneNumbers {
-    final list = [];
+    List<PhoneNumberFF> list = [];
 
     for (Element element
         in _element.querySelectorAll('div[class="product_inner_block"]')) {
@@ -42,7 +40,8 @@ class FamilyAndFriends {
     return list;
   }
 
-  void unsubscribe(List<Cookie> cookies) async {
+  
+  void unsubscribe() async {
     try {
       final dataMap = Map<String, String>();
 

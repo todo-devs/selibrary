@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:html/dom.dart';
 import 'package:selibrary/selibrary.dart';
@@ -36,12 +35,12 @@ class PhoneNumberFF {
   String get textDelete =>
       _element.querySelector('a[id="btn-delete-ph1"]').text;
 
-  void add(String phoneNumber, List<Cookie> cookies) async {
+  static Future<String> add(String phoneNumber, String subscriber) async {
     try {
       final dataMap = Map<String, String>();
 
       dataMap["numberToAdd"] = phoneNumber;
-      dataMap["subscriber"] = _subscriber;
+      dataMap["subscriber"] = subscriber;
       dataMap["format"] = "jsonp";
 
       final response = await Net.connection(
@@ -53,18 +52,17 @@ class PhoneNumberFF {
 
       final responseCode = jsonObject["responseCode"];
 
-      status["code"] = responseCode as String;
-      status["responseMessage"] = jsonObject["responseMessage"] as String;
-
       if ((responseCode as String) == "124") {
         throw OperationException("$responseCode: Debajo del balance mínimo.");
       }
+
+      return jsonObject["responseMessage"] as String;
     } catch (e) {
       throw CommunicationException("${e.message}");
     }
   }
 
-  void change(String phoneNumber, List<Cookie> cookies) async {
+  Future<void> change(String phoneNumber) async {
     try {
       final dataMap = Map<String, String>();
 
@@ -92,7 +90,7 @@ class PhoneNumberFF {
     }
   }
 
-  void delete(List<Cookie> cookies) async {
+  Future<void> delete() async {
     try {
       final dataMap = Map<String, String>();
 

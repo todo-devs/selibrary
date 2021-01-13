@@ -1,7 +1,3 @@
-# selibrary
-
-## MiCubacel
-```dart
 import 'package:selibrary/selibrary.dart';
 
 class Client extends ICubacelClient {
@@ -74,4 +70,3 @@ void main(List<String> args) async {
 
   await client.start();
 }
-```
