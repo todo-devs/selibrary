@@ -1,5 +1,3 @@
-import 'dart:html';
-
 import 'package:html/dom.dart';
 import 'package:selibrary/src/selibrary.dart';
 

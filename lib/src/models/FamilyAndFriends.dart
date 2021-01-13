@@ -50,9 +50,7 @@ class FamilyAndFriends {
 
       await Net.connection(
         url: MCP_UNSUBSCRIBE_FAF_URL,
-        cookies: cookies,
         dataMap: dataMap,
-        verify: false,
       );
     } catch (e) {
       throw CommunicationException("${e.message}");

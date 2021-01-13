@@ -1,6 +1,4 @@
 import 'dart:convert';
-import 'dart:html';
-import 'dart:io';
 
 import 'package:html/dom.dart';
 import 'package:html/parser.dart';
@@ -44,13 +42,6 @@ abstract class ICubacelClient {
   Document _productsPage;
 
   Map<String, String> _urlsMCP = Map();
-  List<Cookie> _mCookies;
-
-  List<Cookie> get cookies => _mCookies;
-
-  set cookies(value) {
-    _mCookies = value;
-  }
 
   Function saveData;
 
@@ -91,8 +82,12 @@ abstract class ICubacelClient {
       .text;
 
   String get userName {
-    var username = welcomeMessage.replaceFirst('Bienvenido ', '');
-    return username.replaceFirst('a MiCubacel', '').trim();
+    String username = welcomeMessage
+        .replaceFirst('Bienvenido', '')
+        .replaceFirst('a MiCubacel', '')
+        .trim();
+
+    return username;
   }
 
   String get phoneNumber {
@@ -281,9 +276,9 @@ abstract class ICubacelClient {
             .asMap()
             .forEach((count, title) {
           final ePackage = ETECSAPackage(
-              element:
-                  jElement.querySelectorAll('div[class="ac_block"]')[count],
-              bonusPackage: true);
+            element: jElement.querySelectorAll('div[class="ac_block"]')[count],
+            bonusPackage: true,
+          );
           ePackage.title = title.text;
           buys.add(ePackage);
         });
@@ -295,8 +290,9 @@ abstract class ICubacelClient {
             .asMap()
             .forEach((count, title) {
           final ePackage = ETECSAPackage(
-              element:
-                  jElement.querySelectorAll('div[class="ac_block"]')[count]);
+            element: jElement.querySelectorAll('div[class="ac_block"]')[count],
+            bonusPackage: false,
+          );
           ePackage.title = title.text;
           buys.add(ePackage);
         });
@@ -305,12 +301,10 @@ abstract class ICubacelClient {
     return buys;
   }
 
-  void loadHomePage(List<Cookie> cookies) async {
+  Future<void> loadHomePage() async {
     try {
       var response = await Net.connection(
-        url: MCP_BASE_URL,
-        cookies: _mCookies,
-        verify: false,
+        url: MCP_BASE_URL + '/',
       );
 
       _currentPage = parse(response.data);
@@ -326,19 +320,16 @@ abstract class ICubacelClient {
         }
       }
 
-      _mCookies = Net.cookies;
-
       if (_urlsMCP.isNotEmpty) _urlsMCP.clear();
 
-      _urlsMCP["home"] = MCP_BASE_URL + urlSpanish;
+      _urlsMCP['home'] = MCP_BASE_URL + urlSpanish;
 
       response = await Net.connection(
         url: MCP_BASE_URL + urlSpanish,
-        cookies: _mCookies,
-        verify: false,
       );
 
       _currentPage = parse(response.data);
+      _homePage = parse(response.data);
 
       final div = _currentPage.querySelector(
           'div[class="collapse navbar-collapse navbar-main-collapse"]');
@@ -346,55 +337,47 @@ abstract class ICubacelClient {
       final lis = div.querySelectorAll('li');
 
       for (var li in lis) {
-        switch (li.text) {
+        switch (li.text.trim()) {
           case 'Ofertas':
-            _urlsMCP["offers"] =
+            _urlsMCP['offers'] =
                 MCP_BASE_URL + li.querySelector('a').attributes['href'];
             break;
           case 'Productos':
-            _urlsMCP["products"] =
+            _urlsMCP['products'] =
                 MCP_BASE_URL + li.querySelector('a').attributes['href'];
             break;
           case 'Mi Cuenta':
-            _urlsMCP["myAccount"] =
+            _urlsMCP['myAccount'] =
                 MCP_BASE_URL + li.querySelector('a').attributes['href'];
             break;
           case 'Soporte':
-            _urlsMCP["support"] =
+            _urlsMCP['support'] =
                 MCP_BASE_URL + li.querySelector("a").attributes['href'];
 
             break;
         }
       }
-      _mCookies = Net.cookies;
     } catch (e) {
-      throw CommunicationException("${e.message}");
+      throw CommunicationException("LOAD HOME: ${e.message}");
     }
   }
 
-  void login(String phoneNumber, String password) async {
-    loadHomePage(null);
-
-    await Net.connection(url: MCP_WELCOME_LOGIN_ES_URL, verify: false);
-    _mCookies = Net.cookies;
-
-    final formData = {
-      'language': 'es_ES',
-      'username': phoneNumber,
-      'password': password,
-      'uword': 'amount'
-    };
-
+  Future<void> login(String phoneNumber, String password) async {
     try {
+      await Net.connection(url: MCP_WELCOME_LOGIN_ES_URL);
+
+      final formData = {
+        'language': 'es_ES',
+        'username': phoneNumber,
+        'password': password,
+        'uword': 'amount'
+      };
+
       var response = await Net.connection(
         url: MCP_LOGIN_URL,
         dataMap: formData,
-        cookies: _mCookies,
-        verify: false,
         method: 'POST',
       );
-
-      _mCookies = Net.cookies;
 
       _currentPage = parse(response.data);
 
@@ -409,46 +392,36 @@ abstract class ICubacelClient {
 
         throw LoginException(msg);
       } else {
-        response = await Net.connection(url: _urlsMCP['home'], verify: false);
-        _homePage = parse(response.data);
+        await loadHomePage();
       }
-    } catch (e) {
-      throw CommunicationException("${e.message}");
+    } on CommunicationException catch (e) {
+      throw CommunicationException("LOGIN: ${e.message}");
     }
   }
 
-  Future<String> _loadHome() async {
-    await loadHomePage(_mCookies);
-
-    return _urlsMCP['myAccount'];
-  }
-
-  void loadMyAccount(String url, {bool loadHome = false}) async {
+  Future<void> loadMyAccount() async {
     try {
-      final urlAction = loadHome ? await _loadHome() : url;
-
       final response = await Net.connection(
-        url: urlAction,
-        cookies: _mCookies,
-        verify: false,
+        url: _urlsMCP['myAccount'],
       );
+
       _myAccountPage = parse(response.data);
 
       _urlsMCP['changeBonusServices'] = MCP_BASE_URL +
           _myAccountPage
               .querySelector('form[id="toogle-internet"]')
               .attributes['action'];
-    } catch (e) {
-      throw CommunicationException("${e.message}");
+    } on CommunicationException catch (e) {
+      throw CommunicationException("LOAD ACCOUNT: ${e.message}");
     }
   }
 
-  void loadNews() async {
+  Future<void> loadNews() async {
     try {
       final response = await Net.connection(url: ETECSA_HOME_PAGE_URL);
       _newsPage = parse(response.data);
-    } catch (e) {
-      throw CommunicationException("${e.message}");
+    } on CommunicationException catch (e) {
+      throw CommunicationException("LOAD NEWS: ${e.message}");
     }
   }
 
@@ -464,8 +437,6 @@ abstract class ICubacelClient {
       Net.connection(
         url: urlAction,
         dataMap: dataMap,
-        cookies: _mCookies,
-        verify: false,
         method: 'POST',
       );
     } catch (e) {
@@ -473,38 +444,26 @@ abstract class ICubacelClient {
     }
   }
 
-  void loadProducts(String urlAction) async {
+  Future<void> loadProducts(String urlAction) async {
     try {
       final response = await Net.connection(
         url: urlAction,
-        cookies: _mCookies,
-        verify: false,
       );
       _productsPage = parse(response.data);
     } catch (e) {
-      throw CommunicationException("${e.message}");
+      throw CommunicationException("LOAD PRODUCTS: ${e.message}");
     }
   }
 
-  void resetPassword(String phoneNumber) async {
+  Future<void> resetPassword(String phoneNumber) async {
     try {
-      _mCookies.clear();
-
       await Net.connection(
         url: MCP_WELCOME_LOGIN_ES_URL,
-        cookies: cookies,
-        verify: false,
       );
-
-      _mCookies = Net.cookies;
 
       await Net.connection(
         url: MCP_FORGOT_URL,
-        cookies: cookies,
-        verify: false,
       );
-
-      _mCookies = Net.cookies;
 
       final dataMap = Map<String, String>();
 
@@ -514,18 +473,14 @@ abstract class ICubacelClient {
       await Net.connection(
         url: MCP_FORGOT_ACTION_URL,
         dataMap: dataMap,
-        cookies: _mCookies,
-        verify: false,
         method: 'POST',
       );
-
-      _mCookies = Net.cookies;
     } catch (e) {
       throw CommunicationException("${e.message}");
     }
   }
 
-  void completeResetPassword(String code, String newPassword) async {
+  Future<void> completeResetPassword(String code, String newPassword) async {
     try {
       final dataMap = Map<String, String>();
 
@@ -537,8 +492,6 @@ abstract class ICubacelClient {
       final response = await Net.connection(
         url: MCP_RESET_PASSWORD_URL,
         dataMap: dataMap,
-        cookies: _mCookies,
-        verify: false,
         method: 'POST',
       );
 
@@ -553,23 +506,20 @@ abstract class ICubacelClient {
             .querySelector('b')
             .text;
         throw OperationException(msg);
-      } else {
-        _mCookies = Net.cookies;
       }
     } catch (e) {
       throw CommunicationException("${e.message}");
     }
   }
 
-  void signUp(String phoneNumber, String firstName, String lastName,
+  Future<void> signUp(String phoneNumber, String firstName, String lastName,
       String email) async {
     try {
-      await Net.connection(url: MCP_WELCOME_LOGIN_ES_URL, verify: false);
-
-      _mCookies = Net.cookies;
+      await Net.connection(url: MCP_WELCOME_LOGIN_ES_URL);
 
       await Net.connection(
-          url: MCP_SIGN_UP_URL, cookies: _mCookies, verify: false);
+        url: MCP_SIGN_UP_URL,
+      );
 
       final dataMap = Map<String, String>();
       dataMap['msisdn'] = phoneNumber;
@@ -582,8 +532,6 @@ abstract class ICubacelClient {
       await Net.connection(
         url: MCP_SIGN_UP_ACTION_URL,
         dataMap: dataMap,
-        cookies: _mCookies,
-        verify: false,
         method: 'POST',
       );
     } catch (e) {
@@ -591,18 +539,17 @@ abstract class ICubacelClient {
     }
   }
 
-  void verifyCode(String code) async {
+  Future<void> verifyCode(String code) async {
     final dataMap = Map<String, String>();
 
     dataMap['username'] = code;
     dataMap['uword'] = 'step';
 
     final response = await Net.connection(
-        url: MCP_VERIFY_REGISTRATION_CODE_URL,
-        dataMap: dataMap,
-        cookies: _mCookies,
-        verify: false,
-        method: 'POST');
+      url: MCP_VERIFY_REGISTRATION_CODE_URL,
+      dataMap: dataMap,
+      method: 'POST',
+    );
     _currentPage = parse(response.data);
 
     if (_currentPage.querySelector('div[class="body_wrapper error_page"]') !=
@@ -626,7 +573,7 @@ abstract class ICubacelClient {
     }
   }
 
-  void completeSignUp(String password) async {
+  Future<void> completeSignUp(String password) async {
     try {
       final dataMap = Map<String, String>();
 
@@ -637,8 +584,6 @@ abstract class ICubacelClient {
       final response = await Net.connection(
         url: MCP_REGISTER_PASSWORD_CREATION_URL,
         dataMap: dataMap,
-        cookies: _mCookies,
-        verify: false,
         method: 'POST',
       );
       _currentPage = parse(response.data);
@@ -669,17 +614,16 @@ abstract class ICubacelClient {
     }
   }
 
-  void loanMe(String mount, String subscriber) async {
+  Future<void> loanMe(String mount, String subscriber) async {
     final dataMap = Map<String, String>();
 
     dataMap['subscriber'] = subscriber;
     dataMap['transactionAmount'] = mount;
 
     final response = await Net.connection(
-        url: MCP_LOAN_ME_URL,
-        dataMap: dataMap,
-        cookies: _mCookies,
-        verify: false);
+      url: MCP_LOAN_ME_URL,
+      dataMap: dataMap,
+    );
     final data = json.decode(response.data);
     final responseCode = data['responseCode'];
 

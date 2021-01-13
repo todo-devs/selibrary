@@ -1,13 +1,16 @@
 export 'Exceptions.dart';
 export 'Constants.dart';
 
-import 'dart:html';
+import 'package:html/dom.dart';
 
 import 'package:html/parser.dart';
 
 int creditToInt(String credit) {
-  return int.parse(
-      credit.replaceAll('\$', '').replaceAll(' CUC', '').replaceAll(',', ''));
+  return int.parse(credit
+      .replaceAll('\$', '')
+      .replaceAll(' CUC', '')
+      .replaceAll(' CUP', '')
+      .replaceAll(',', ''));
 }
 
 List<Element> getOperationList(Element tableConnectionList) {

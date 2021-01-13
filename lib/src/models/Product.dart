@@ -38,8 +38,7 @@ class Product {
 
   static void buy(String urlBuyAction, List<Cookie> cookies) async {
     try {
-      var response = await Net.connection(
-          url: MCP_BASE_URL + urlBuyAction, cookies: cookies, verify: false);
+      var response = await Net.connection(url: MCP_BASE_URL + urlBuyAction);
       var page = parse(response.data);
 
       final urlBuy = page
@@ -47,8 +46,7 @@ class Product {
               'a[class="offerPresentationProductBuyLink_msdp button_style link_button"]')
           .attributes['href'];
 
-      response = await Net.connection(
-          url: MCP_BASE_URL + urlBuy, cookies: cookies, verify: false);
+      response = await Net.connection(url: MCP_BASE_URL + urlBuy);
       page = parse(response.data);
 
       final purchaseDetail = page

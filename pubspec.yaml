@@ -9,3 +9,5 @@ environment:
 dependencies:
   dio: ^3.0.10
   html: ^0.14.0+4
+  dio_cookie_manager: ^1.0.0
+  cookie_jar: ^1.0.1

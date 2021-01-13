@@ -2,3 +2,4 @@
 .vscode
 .idea
 .packages
+local_tests

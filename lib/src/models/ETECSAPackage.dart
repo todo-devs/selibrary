@@ -33,7 +33,7 @@ class ETECSAPackage {
 
   String get packageId => _element
       .querySelector('div[class="charts_data"]')
-      .querySelectorAll('div')[1]
+      .querySelectorAll('div')[0]
       .attributes['id'];
 
   bool get isBonusPackage => _bonusPackage;
@@ -92,5 +92,6 @@ class ETECSAPackage {
   String get expireDate => _element
       .querySelector('div[class="expiry_date_right"]')
       .querySelector('span[class="date_value"]')
-      .text;
+      .text
+      .trim();
 }

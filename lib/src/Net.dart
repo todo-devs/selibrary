@@ -2,10 +2,11 @@ import 'dart:io';
 
 import 'package:dio/adapter.dart';
 import 'package:dio/dio.dart';
+import 'package:selibrary/src/utils/utils.dart';
+import 'package:dio_cookie_manager/dio_cookie_manager.dart';
+import 'package:cookie_jar/cookie_jar.dart';
 
 abstract class Net {
-  static List<Cookie> _cookies;
-
   static Dio _httpClient;
 
   static Dio get httpClient {
@@ -25,18 +26,15 @@ abstract class Net {
           'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36';
 
       _httpClient.options.headers[HttpHeaders.connectionHeader] = 'keep-alive';
-    }
 
-    if (_cookies != null) {
-      _cookies.removeWhere((cookie) {
-        if (cookie.expires != null) {
-          return cookie.expires.isBefore(DateTime.now());
-        }
-        return false;
-      });
+      (_httpClient.httpClientAdapter as DefaultHttpClientAdapter)
+          .onHttpClientCreate = (client) {
+        client.badCertificateCallback =
+            (X509Certificate cert, String host, int port) => true;
+      };
 
-      _httpClient.options.headers[HttpHeaders.cookieHeader] =
-          _getCookies(_cookies);
+      _httpClient.interceptors
+          .add(CookieManager(CookieJar(ignoreExpires: true)));
     }
 
     return _httpClient;
@@ -45,85 +43,45 @@ abstract class Net {
   static Future<Response> connection({
     String url,
     Map<String, String> dataMap = null,
-    List<Cookie> cookies = null,
     String method = 'GET',
-    bool verify = true,
   }) async {
-    Map<String, String> formData;
-
     final http = httpClient;
 
-    if (cookies != null) {
-      cookies.removeWhere((cookie) {
-        if (cookie.expires != null) {
-          return cookie.expires.isBefore(DateTime.now());
-        }
-        return false;
-      });
+    try {
+      var response = await http.request(
+        url,
+        queryParameters: dataMap,
+        options: Options(
+          method: method,
+          validateStatus: (status) {
+            return status < 400;
+          },
+        ),
+      );
 
-      http.options.headers[HttpHeaders.cookieHeader] = _getCookies(cookies);
-    }
-
-    if (dataMap != null) {
-      formData = dataMap;
-    }
-
-    if (!verify) {
-      (http.httpClientAdapter as DefaultHttpClientAdapter).onHttpClientCreate =
-          (client) {
-        client.badCertificateCallback =
-            (X509Certificate cert, String host, int port) => true;
-      };
-    }
-
-    var response = await http.request(
-      url,
-      queryParameters: formData,
-      options: Options(
-        method: method,
-        validateStatus: (status) {
-          return status < 500;
-        },
-      ),
-    );
-
-    _saveCookies(response);
-
-    if (response.headers[HttpHeaders.locationHeader] != null) {
-      response = await httpClient.get(response.headers['location'].first);
-
-      _saveCookies(response);
-    }
-
-    return response;
-  }
-
-  static List<Cookie> get cookies => _cookies;
-  static String get cookiesAsString => _getCookies(_cookies);
-
-  static String _getCookies(List<Cookie> cookies) {
-    return cookies.map((cookie) => "${cookie.name}=${cookie.value}").join('; ');
-  }
-
-  static void _saveCookies(Response response) {
-    if (response != null && response.headers != null) {
-      List<String> resCookies = response.headers[HttpHeaders.setCookieHeader];
-      if (resCookies != null) {
-        _cookies.addAll(
-            resCookies.map((str) => Cookie.fromSetCookieValue(str)).toList());
+      if (response.headers[HttpHeaders.locationHeader] != null) {
+        response = await http.get(response.headers['location'].first);
       }
+
+      return response;
+    } on DioError catch (e) {
+      throw CommunicationException(e.message);
     }
   }
 
   static Future<List<int>> getImage(String url) async {
-    Response<List<int>> res = await httpClient.get(
-      url,
-      options: Options(responseType: ResponseType.bytes),
-    );
+    try {
+      final http = httpClient;
 
-    _saveCookies(res);
+      Response<List<int>> res = await http.get(
+        url,
+        options: Options(responseType: ResponseType.bytes),
+      );
 
-    return res.data;
+      return res.data;
+    } on DioError catch (e) {
+      throw CommunicationException(e.message);
+    }
   }
 
   static Future<File> saveImage({

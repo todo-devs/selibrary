@@ -45,10 +45,10 @@ class PhoneNumberFF {
       dataMap["format"] = "jsonp";
 
       final response = await Net.connection(
-          url: MCP_PHONE_NUMBER_FF_ADD_URL,
-          cookies: cookies,
-          dataMap: dataMap,
-          verify: false);
+        url: MCP_PHONE_NUMBER_FF_ADD_URL,
+        dataMap: dataMap,
+      );
+
       final jsonObject = json.decode(response.data);
 
       final responseCode = jsonObject["responseCode"];
@@ -74,10 +74,9 @@ class PhoneNumberFF {
       dataMap["format"] = "jsonp";
 
       final response = await Net.connection(
-          url: MCP_PHONE_NUMBER_FF_CHANGE_URL,
-          cookies: cookies,
-          dataMap: dataMap,
-          verify: false);
+        url: MCP_PHONE_NUMBER_FF_CHANGE_URL,
+        dataMap: dataMap,
+      );
       final jsonObject = json.decode(response.data);
 
       final responseCode = jsonObject["responseCode"];
@@ -102,10 +101,9 @@ class PhoneNumberFF {
       dataMap["format"] = "jsonp";
 
       final response = await Net.connection(
-          url: MCP_PHONE_NUMBER_FF_CHANGE_URL,
-          cookies: cookies,
-          dataMap: dataMap,
-          verify: false);
+        url: MCP_PHONE_NUMBER_FF_CHANGE_URL,
+        dataMap: dataMap,
+      );
       final jsonObject = json.decode(response.data);
 
       final responseCode = jsonObject["responseCode"];
