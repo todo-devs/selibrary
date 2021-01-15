@@ -27,13 +27,18 @@ String buildYearMonth(int year, int month) {
   }
 }
 
-String findError(Document page, String _type) {
-  final err = page.querySelectorAll('script').last;
-  final txt = err.text.replaceAll("toastr.error('", '').replaceAll("');", '');
-  final error =
-      parse(txt).querySelectorAll('li').map((e) => e.text).toList().last;
+String findError(Document page) {
+  try {
+    final err = page.querySelectorAll('script').last;
+    final txt = err.text.replaceAll("toastr.error('", '').replaceAll("');", '');
+    final error =
+        parse(txt).querySelectorAll('li').map((e) => e.text).toList().last;
 
-  return error;
+    return error;
+  } on Exception catch (e) {
+    print(e);
+    return null;
+  }
 }
 
 Map<String, String> getSessionParameters(Document page) {

@@ -44,20 +44,36 @@ abstract class Net {
     String url,
     Map<String, String> dataMap = null,
     String method = 'GET',
+    formData = false,
   }) async {
     final http = httpClient;
 
     try {
-      var response = await http.request(
-        url,
-        queryParameters: dataMap,
-        options: Options(
-          method: method,
-          validateStatus: (status) {
-            return status < 400;
-          },
-        ),
-      );
+      Response response;
+
+      if (formData) {
+        response = await http.request(
+          url,
+          data: FormData.fromMap(dataMap),
+          options: Options(
+            method: method,
+            validateStatus: (status) {
+              return status < 400;
+            },
+          ),
+        );
+      } else {
+        response = await http.request(
+          url,
+          queryParameters: dataMap,
+          options: Options(
+            method: method,
+            validateStatus: (status) {
+              return status < 400;
+            },
+          ),
+        );
+      }
 
       if (response.headers[HttpHeaders.locationHeader] != null) {
         response = await http.get(response.headers['location'].first);
@@ -82,13 +98,5 @@ abstract class Net {
     } on DioError catch (e) {
       throw CommunicationException(e.message);
     }
-  }
-
-  static Future<File> saveImage({
-    String filePath: 'captcha.png',
-    List<int> imageAsByte,
-  }) async {
-    var file = File(filePath);
-    return await file.writeAsBytes(imageAsByte);
   }
 }
