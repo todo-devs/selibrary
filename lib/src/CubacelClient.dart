@@ -40,6 +40,7 @@ abstract class ICubacelClient {
   Document _myAccountPage;
   Document _newsPage;
   Document _productsPage;
+  String updated;
 
   Map<String, String> _urlsMCP = Map();
 
@@ -47,10 +48,11 @@ abstract class ICubacelClient {
 
   Map<String, dynamic> get asJson {
     return {
-      'currentPage': _currentPage.outerHtml,
-      'homePage': _homePage.outerHtml,
-      'myAccountPage': _myAccountPage.outerHtml,
-      'productsPage': _productsPage.outerHtml,
+      'currentPage': _currentPage?.outerHtml,
+      'homePage': _homePage?.outerHtml,
+      'myAccountPage': _myAccountPage?.outerHtml,
+      // 'productsPage': _productsPage?.outerHtml,
+      'updated': updated,
       'urlsMCP': _urlsMCP,
     };
   }
@@ -59,8 +61,29 @@ abstract class ICubacelClient {
     this._currentPage = parse(data['currentPage']);
     this._homePage = parse(data['homePage']);
     this._myAccountPage = parse(data['myAccountPage']);
-    this._productsPage = parse(data['productsPage']);
+    // this._productsPage = parse(data['productsPage']);
+    this.updated = data['updated'];
     this._urlsMCP = Map.castFrom(data['urlsMCP']);
+  }
+
+  String get dateTimeNow {
+    var now = DateTime.now();
+
+    final hour =
+        (now.hour % 12 == 0 ? 12 : now.hour % 12).toString().padLeft(2, '0');
+
+    final min = now.minute.toString().padLeft(2, '0');
+
+    var tt = 'AM';
+    if (now.hour >= 12) {
+      tt = 'PM';
+    }
+
+    final day = now.day.toString().padLeft(2, '0');
+    final month = now.month.toString().padLeft(2, '0');
+    final year = now.year;
+
+    return '$day/$month/$year $hour:$min $tt';
   }
 
   Map<String, String> get urls => _urlsMCP;
@@ -253,16 +276,16 @@ abstract class ICubacelClient {
     return list;
   }
 
-  FamilyAndFriends get familyAndFriends {
-    return FamilyAndFriends(
-        element: _myAccountPage
-            .querySelector('div[id="familyAndFriends"]')
-            .querySelector('div[class="settings_block"]'),
-        fnfValue: _myAccountPage
-            .querySelector('div[id="fnfBlock"]')
-            .querySelector('input[id="fnfBlockValue"]')
-            .attributes['value']);
-  }
+  // FamilyAndFriends get familyAndFriends {
+  //   return FamilyAndFriends(
+  //       element: _myAccountPage
+  //           .querySelector('div[id="familyAndFriends"]')
+  //           .querySelector('div[class="settings_block"]'),
+  //       fnfValue: _myAccountPage
+  //           .querySelector('div[id="fnfBlock"]')
+  //           .querySelector('input[id="fnfBlockValue"]')
+  //           .attributes['value']);
+  // }
 
   List<ETECSAPackage> get buys {
     final List<ETECSAPackage> buys = [];
@@ -340,19 +363,19 @@ abstract class ICubacelClient {
         switch (li.text.trim()) {
           case 'Ofertas':
             _urlsMCP['offers'] =
-                MCP_BASE_URL + li.querySelector('a').attributes['href'];
+                MCP_BASE_URL + li.querySelector('a')?.attributes['href'];
             break;
           case 'Productos':
             _urlsMCP['products'] =
-                MCP_BASE_URL + li.querySelector('a').attributes['href'];
+                MCP_BASE_URL + li.querySelector('a')?.attributes['href'];
             break;
           case 'Mi Cuenta':
             _urlsMCP['myAccount'] =
-                MCP_BASE_URL + li.querySelector('a').attributes['href'];
+                MCP_BASE_URL + li.querySelector('a')?.attributes['href'];
             break;
           case 'Soporte':
             _urlsMCP['support'] =
-                MCP_BASE_URL + li.querySelector("a").attributes['href'];
+                MCP_BASE_URL + li.querySelector("a")?.attributes['href'];
 
             break;
         }
@@ -407,10 +430,12 @@ abstract class ICubacelClient {
 
       _myAccountPage = parse(response.data);
 
-      _urlsMCP['changeBonusServices'] = MCP_BASE_URL +
-          _myAccountPage
-              .querySelector('form[id="toogle-internet"]')
-              .attributes['action'];
+      // _urlsMCP['changeBonusServices'] = MCP_BASE_URL +
+      //     _myAccountPage
+      //         .querySelector('form[id="toogle-internet"]')
+      //         .attributes['action'];
+
+      updated = dateTimeNow;
     } on CommunicationException catch (e) {
       throw CommunicationException("LOAD ACCOUNT: ${e.message}");
     }

@@ -31,17 +31,17 @@ class Client extends ICubacelClient {
         print(p.isStatusRed);
       });
 
-      final friends = familyAndFriends;
+      // final friends = familyAndFriends;
 
-      print('Family And Friends');
-      print(friends.title);
-      print(friends.changesFree);
-      print(friends.subscriber);
-      print('Phones');
-      friends.phoneNumbers.forEach((p) {
-        print(p.title);
-        print(p.phoneNumber);
-      });
+      // print('Family And Friends');
+      // print(friends.title);
+      // print(friends.changesFree);
+      // print(friends.subscriber);
+      // print('Phones');
+      // friends.phoneNumbers.forEach((p) {
+      //   print(p.title);
+      //   print(p.phoneNumber);
+      // });
 
       await loadProducts();
 
