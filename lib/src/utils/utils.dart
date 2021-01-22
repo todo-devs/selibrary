@@ -35,8 +35,9 @@ String findError(Document page) {
         parse(txt).querySelectorAll('li').map((e) => e.text).toList().last;
 
     return error;
-  } on Exception catch (e) {
-    print(e);
+  } on StateError {
+    return null;
+  } on Exception {
     return null;
   }
 }
