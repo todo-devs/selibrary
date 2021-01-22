@@ -194,4 +194,80 @@ abstract class IUserPortalClient {
       throw CommunicationException('login: ${e.message}');
     }
   }
+
+  Future<void> recharge(String rechargeCode) async {
+    rechargeCode = rechargeCode.replaceAll(' ', '');
+    if (rechargeCode.length != 12 && rechargeCode.length != 16) {
+      throw CodeException("El codigo debe tener 12 o 16 digitos");
+    }
+    try {
+      var response = await Net.connection(url: UP_RECHARGE_URL);
+      _page = parse(response.data);
+      _getCSRF();
+
+      final dataMap = Map<String, String>();
+      dataMap["csrf"] = _csrf;
+      dataMap["recharge_code"] = rechargeCode;
+      dataMap["btn_submit"] = '';
+      response = await Net.connection(
+        url: UP_RECHARGE_URL,
+        dataMap: dataMap,
+        formData: true,
+        method: 'POST',
+      );
+      _page = parse(response.data);
+
+      final error = findError(_page);
+
+      if (error != null) {
+        throw OperationException(error);
+      }
+    } on IException catch (e) {
+      throw CommunicationException("RECHARGE: ${e.message}");
+    }
+  }
+
+  Future<void> transfer(
+      String mountToTransfer, String password, String accountToTransfer) async {
+    try {
+      var response = await Net.connection(url: UP_TRANSFER_URL);
+      _page = parse(response.data);
+      _getCSRF();
+
+      final dataMap = Map<String, String>();
+      dataMap["csrf"] = _csrf;
+      dataMap["transfer"] = mountToTransfer;
+      dataMap["password_user"] = password;
+      dataMap["id_cuenta"] = accountToTransfer;
+      dataMap["action"] = "checkdata";
+
+      if (credit != null && creditToInt(credit) == 0) {
+        // set error
+        throw OperationException(
+            "Usted no tiene saldo en la cuenta. Por favor recargue.");
+      } else if (credit != null &&
+          creditToInt(credit) <
+              int.parse(
+                  mountToTransfer.replaceAll(",", "").replaceAll('.', ''))) {
+        throw OperationException(
+            "Su saldo es inferior a la cantidad que quiere transferir.");
+      }
+
+      response = await Net.connection(
+        url: UP_TRANSFER_URL,
+        dataMap: dataMap,
+        formData: true,
+        method: 'POST',
+      );
+      _page = parse(response.data);
+
+      final error = findError(_page);
+
+      if (error != null) {
+        throw OperationException(error);
+      }
+    } on IException catch (e) {
+      throw CommunicationException("Transferencia: ${e.message}");
+    }
+  }
 }
