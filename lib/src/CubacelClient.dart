@@ -127,7 +127,7 @@ abstract class ICubacelClient {
             .text;
       }
     }
-    return null;
+    return '';
   }
 
   String get credit {
@@ -144,7 +144,7 @@ abstract class ICubacelClient {
             .text;
       }
     }
-    return null;
+    return '';
   }
 
   String get expire {
@@ -161,7 +161,7 @@ abstract class ICubacelClient {
             .text;
       }
     }
-    return null;
+    return '';
   }
 
   String get creditBonus {
@@ -182,7 +182,7 @@ abstract class ICubacelClient {
             .text;
       }
     }
-    return null;
+    return '';
   }
 
   String get expireBonus {
@@ -203,7 +203,7 @@ abstract class ICubacelClient {
             .text;
       }
     }
-    return null;
+    return '';
   }
 
   String get date {
@@ -212,7 +212,7 @@ abstract class ICubacelClient {
         return div.querySelector('span[class="cvalue bold"]').text;
       }
     }
-    return null;
+    return '';
   }
 
   String get payableBalance {
@@ -221,7 +221,7 @@ abstract class ICubacelClient {
         return div.querySelector('span[class="cvalue bold cuc-font"]').text;
       }
     }
-    return null;
+    return '';
   }
 
   bool get isActiveBonusServices {
